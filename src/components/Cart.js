@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axiosInstance from "./axiosConfig";
 import "./Cart.css";
 
@@ -6,8 +6,7 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
   const [cartItems, setCartItems] = useState([]);
   const [message, setMessage] = useState("");
 
-  
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
       try {
@@ -25,13 +24,12 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
       setCartItems(guestCart);
       onCartUpdate?.(guestCart.reduce((sum, i) => sum + i.quantity, 0));
     }
-  };
+  }, [isLoggedIn, onCartUpdate]);
 
   useEffect(() => {
     fetchCart();
-  }, [isLoggedIn]);
+  }, [fetchCart]);
 
- 
   const handleRemove = async (item) => {
     if (isLoggedIn) {
       try {
@@ -49,7 +47,6 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
       onCartUpdate?.(updated.reduce((sum, i) => sum + i.quantity, 0));
     }
   };
-
 
   const handleQuantityChange = async (item, value) => {
     let qty = parseInt(value);
@@ -78,9 +75,7 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
     }
   };
 
-  
   const handleCheckout = async () => {
-   
     if (!isLoggedIn) {
       onRequireLogin?.();
       return;
@@ -89,7 +84,6 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
     if (cartItems.length === 0) return;
 
     try {
-      
       for (const item of cartItems) {
         await axiosInstance.delete(`api/cart/${item.id}/`, {
           headers: {
@@ -98,9 +92,7 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
         });
       }
 
-      
       await fetchCart();
-
       setMessage("✅ Order placed successfully! Thank you for shopping with us.");
     } catch {
       setMessage("❌ Something went wrong. Please try again.");
@@ -109,7 +101,6 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
     setTimeout(() => setMessage(""), 3000);
   };
 
-  
   const formatPrice = (amount) =>
     amount.toLocaleString("en-IN", {
       style: "currency",
