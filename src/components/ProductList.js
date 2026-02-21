@@ -8,7 +8,7 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
 
    
   useEffect(() => {
-    axios.get("http://127.0.0.1:8000/api/products/")
+    axios.get("https://ecommerce-backend-2qhm.onrender.com/api/products/")
       .then(res => setProducts(res.data))
       .catch(err => console.error(err));
     syncCartCount();
@@ -18,7 +18,7 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
   const syncCartCount = () => {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
-      axios.get("http://127.0.0.1:8000/api/cart/", { headers: { Authorization: `Bearer ${token}` } })
+      axios.get("https://ecommerce-backend-2qhm.onrender.com/api/cart/", { headers: { Authorization: `Bearer ${token}` } })
         .then(res => onCartUpdate(res.data.reduce((sum, i) => sum + i.quantity, 0)))
         .catch(() => onCartUpdate(0));
     } else {
@@ -32,7 +32,7 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
       axios.post(
-        "http://127.0.0.1:8000/api/cart/",
+        "https://ecommerce-backend-2qhm.onrender.com/api/cart/",
         { product: product.id, quantity: 1 },
         { headers: { Authorization: `Bearer ${token}` } }
       )

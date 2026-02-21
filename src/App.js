@@ -23,7 +23,7 @@ function App() {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
       if (token) {
-        fetch("http://127.0.0.1:8000/api/cart/", {
+        fetch("https://ecommerce-backend-2qhm.onrender.com/api/cart/", {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then(res => res.json())

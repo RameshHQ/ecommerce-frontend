@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000/",
+  baseURL: "https://ecommerce-backend-2qhm.onrender.com/",
   headers: { "Content-Type": "application/json" },
   timeout: 10000, 
   withCredentials: false,
@@ -64,7 +64,7 @@ axiosInstance.interceptors.response.use(
 
       try {
         
-        const res = await axios.post("http://127.0.0.1:8000/api/token/refresh/", {
+        const res = await axios.post("https://ecommerce-backend-2qhm.onrender.com/api/token/refresh/", {
           refresh: refreshToken,
         });
 

@@ -48,5 +48,5 @@ If you aren't satisfied with the build tool and configuration choices, you can `
 Create a `.env` file in the frontend root and add your backend and Cloudinary configuration:
 
 ```bash
-REACT_APP_API_URL=https://your-backend-url
+REACT_APP_API_URL=https://ecommerce-backend-2qhm.onrender.com
 REACT_APP_CLOUDINARY_CLOUD_NAME=dkmz6prj1
