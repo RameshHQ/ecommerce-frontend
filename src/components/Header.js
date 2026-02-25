@@ -1,20 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const Header = ({ cartCount, isLoggedIn, onLogout }) => {
+const Header = ({ cartCount, isLoggedIn, onLogout, onCartUpdate }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [screenWidth, setScreenWidth] = useState(window.innerWidth);
+  const [localCartCount, setLocalCartCount] = useState(0);
 
   const navigate = useNavigate();
 
-  
   useEffect(() => {
     const handleResize = () => setScreenWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  
   useEffect(() => {
     const closeOnScroll = () => {
       if (menuOpen) setMenuOpen(false);
@@ -22,6 +21,17 @@ const Header = ({ cartCount, isLoggedIn, onLogout }) => {
     window.addEventListener("scroll", closeOnScroll);
     return () => window.removeEventListener("scroll", closeOnScroll);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      const count = guestCart.reduce((sum, i) => sum + (i.quantity || 1), 0);
+      setLocalCartCount(count);
+      onCartUpdate?.(count);
+    } else {
+      setLocalCartCount(cartCount);
+    }
+  }, [cartCount, isLoggedIn, onCartUpdate]);
 
   const isMobile = screenWidth <= 768;
 
@@ -100,19 +110,14 @@ const Header = ({ cartCount, isLoggedIn, onLogout }) => {
     },
   };
 
-   
   const displayCartCount = () => {
-    if (!isLoggedIn) {
-      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-      return guestCart.reduce((sum, i) => sum + (i.quantity || 1), 0);
-    }
+    if (!isLoggedIn) return localCartCount;
     return cartCount;
   };
 
-   
   const handleLogout = () => {
-    onLogout();      
-    setMenuOpen(false);  
+    onLogout();
+    setMenuOpen(false);
   };
 
   return (
@@ -137,16 +142,10 @@ const Header = ({ cartCount, isLoggedIn, onLogout }) => {
 
             {!isLoggedIn ? (
               <>
-                <button
-                  style={styles.navButton}
-                  onClick={() => navigateTo("/login")}
-                >
+                <button style={styles.navButton} onClick={() => navigateTo("/login")}>
                   Login
                 </button>
-                <button
-                  style={styles.navButton}
-                  onClick={() => navigateTo("/register")}
-                >
+                <button style={styles.navButton} onClick={() => navigateTo("/register")}>
                   Register
                 </button>
               </>
@@ -159,10 +158,7 @@ const Header = ({ cartCount, isLoggedIn, onLogout }) => {
         )}
 
         {isMobile && (
-          <div
-            style={styles.hamburger}
-            onClick={() => setMenuOpen(!menuOpen)}
-          >
+          <div style={styles.hamburger} onClick={() => setMenuOpen(!menuOpen)}>
             ☰
           </div>
         )}
@@ -180,16 +176,10 @@ const Header = ({ cartCount, isLoggedIn, onLogout }) => {
 
           {!isLoggedIn ? (
             <>
-              <button
-                style={styles.blueBtn}
-                onClick={() => navigateTo("/login")}
-              >
+              <button style={styles.blueBtn} onClick={() => navigateTo("/login")}>
                 Login
               </button>
-              <button
-                style={styles.blueBtn}
-                onClick={() => navigateTo("/register")}
-              >
+              <button style={styles.blueBtn} onClick={() => navigateTo("/register")}>
                 Register
               </button>
             </>

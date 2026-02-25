@@ -14,18 +14,12 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
           headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) =>
-          onCartUpdate?.(
-            res.data.reduce((sum, i) => sum + i.quantity, 0)
-          )
+          onCartUpdate?.(res.data.reduce((sum, i) => sum + i.quantity, 0))
         )
         .catch(() => onCartUpdate?.(0));
     } else {
-      const guestCart = JSON.parse(
-        localStorage.getItem("guest_cart") || "[]"
-      );
-      onCartUpdate?.(
-        guestCart.reduce((sum, i) => sum + i.quantity, 0)
-      );
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      onCartUpdate?.(guestCart.reduce((sum, i) => sum + i.quantity, 0));
     }
   }, [isLoggedIn, onCartUpdate]);
 
@@ -40,48 +34,25 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
   const handleAddToCart = (product) => {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
+
+      const existing = false; // We'll optimistically update count without checking backend
+      setAddedMessage((prev) => ({ ...prev, [product.id]: "success" }));
+      syncCartCount();
+      setTimeout(() => setAddedMessage((prev) => ({ ...prev, [product.id]: "" })), 2000);
+
       axios
         .post(
           "https://ecommerce-backend-2qhm.onrender.com/api/cart/",
           { product: product.id, quantity: 1 },
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        .then(() => {
-          setAddedMessage((prev) => ({
-            ...prev,
-            [product.id]: "success",
-          }));
-          syncCartCount();
-          setTimeout(
-            () =>
-              setAddedMessage((prev) => ({
-                ...prev,
-                [product.id]: "",
-              })),
-            2000
-          );
-        })
         .catch(() => {
-          setAddedMessage((prev) => ({
-            ...prev,
-            [product.id]: "error",
-          }));
-          setTimeout(
-            () =>
-              setAddedMessage((prev) => ({
-                ...prev,
-                [product.id]: "",
-              })),
-            2000
-          );
+          setAddedMessage((prev) => ({ ...prev, [product.id]: "error" }));
+          setTimeout(() => setAddedMessage((prev) => ({ ...prev, [product.id]: "" })), 2000);
         });
     } else {
-      const guestCart = JSON.parse(
-        localStorage.getItem("guest_cart") || "[]"
-      );
-      const existing = guestCart.find(
-        (i) => i.id === product.id
-      );
+      const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
+      const existing = guestCart.find((i) => i.id === product.id);
       if (existing) existing.quantity += 1;
       else
         guestCart.push({
@@ -94,23 +65,11 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
             image: product.image,
           },
         });
-      localStorage.setItem(
-        "guest_cart",
-        JSON.stringify(guestCart)
-      );
-      setAddedMessage((prev) => ({
-        ...prev,
-        [product.id]: "success",
-      }));
+
+      localStorage.setItem("guest_cart", JSON.stringify(guestCart));
+      setAddedMessage((prev) => ({ ...prev, [product.id]: "success" }));
       syncCartCount();
-      setTimeout(
-        () =>
-          setAddedMessage((prev) => ({
-            ...prev,
-            [product.id]: "",
-          })),
-        2000
-      );
+      setTimeout(() => setAddedMessage((prev) => ({ ...prev, [product.id]: "" })), 2000);
     }
   };
 
@@ -118,25 +77,12 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
     <div className="grid">
       {products.map((product) => (
         <div className="card" key={product.id}>
-          {addedMessage[product.id] === "success" && (
-            <div className="badge success">Added</div>
-          )}
-          {addedMessage[product.id] === "error" && (
-            <div className="badge error">Error</div>
-          )}
-          {product.image && (
-            <img
-              src={product.image}
-              alt={product.name}
-              className="image"
-            />
-          )}
+          {addedMessage[product.id] === "success" && <div className="badge success">Added</div>}
+          {addedMessage[product.id] === "error" && <div className="badge error">Error</div>}
+          {product.image && <img src={product.image} alt={product.name} className="image" />}
           <h3>{product.name}</h3>
           <p className="price">₹ {product.price}</p>
-          <button
-            className="button"
-            onClick={() => handleAddToCart(product)}
-          >
+          <button className="button" onClick={() => handleAddToCart(product)}>
             Add to Cart
           </button>
         </div>

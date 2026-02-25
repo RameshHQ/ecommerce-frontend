@@ -13,7 +13,6 @@ import ResetPassword from "./components/ResetPassword";
 function App() {
   const navigate = useNavigate();
 
- 
   const [isLoggedIn, setIsLoggedIn] = useState(
     !!localStorage.getItem("access_token")
   );
@@ -27,7 +26,11 @@ function App() {
           headers: { Authorization: `Bearer ${token}` },
         })
           .then(res => res.json())
-          .then(data => setCartCount(data.reduce((sum, i) => sum + (i.quantity || 1), 0)))
+          .then(data =>
+            setCartCount(
+              data.reduce((sum, i) => sum + (i.quantity || 1), 0)
+            )
+          )
           .catch(() => setCartCount(0));
       }
     } else {
@@ -36,31 +39,32 @@ function App() {
     }
   }, [isLoggedIn]);
 
-  
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("access_token"));
     updateCartCount();
+
+    const handleStorageChange = () => updateCartCount();
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [updateCartCount]);
 
-  
   const handleLoginSuccess = () => {
-    setIsLoggedIn(true);      
+    setIsLoggedIn(true);
     updateCartCount();
     navigate("/");
   };
-
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
 
-    setIsLoggedIn(false);     
-    setCartCount(0);           
+    setIsLoggedIn(false);
+    setCartCount(0);
 
     navigate("/");
   };
 
-   
   const requireLogin = () => navigate("/login");
 
   return (
@@ -68,7 +72,8 @@ function App() {
       <Header
         isLoggedIn={isLoggedIn}
         onLogout={handleLogout}
-        cartCount={cartCount}   
+        cartCount={cartCount}
+        onCartUpdate={updateCartCount}
       />
 
       <main style={{ flex: 1, padding: "20px 0", backgroundColor: "#f9f9f9" }}>
@@ -78,7 +83,7 @@ function App() {
             element={
               <ProductList
                 isLoggedIn={isLoggedIn}
-                onCartUpdate={updateCartCount} 
+                onCartUpdate={updateCartCount}
               />
             }
           />
@@ -89,7 +94,7 @@ function App() {
               <Cart
                 isLoggedIn={isLoggedIn}
                 onRequireLogin={requireLogin}
-                onCartUpdate={updateCartCount} 
+                onCartUpdate={updateCartCount}
               />
             }
           />

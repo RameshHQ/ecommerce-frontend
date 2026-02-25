@@ -32,14 +32,15 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
 
   const handleRemove = async (item) => {
     if (isLoggedIn) {
+      const updated = cartItems.filter((i) => i.id !== item.id);
+      setCartItems(updated);
+      onCartUpdate?.(updated.reduce((sum, i) => sum + i.quantity, 0));
+
       try {
         await axiosInstance.delete(`api/cart/${item.id}/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
         });
       } catch {}
-      fetchCart();
     } else {
       const updated = cartItems.filter((i) => i.id !== item.id);
       setCartItems(updated);
@@ -52,26 +53,24 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
     let qty = parseInt(value);
     if (isNaN(qty) || qty < 1) qty = 1;
 
+    const updated = cartItems.map((i) =>
+      i.id === item.id ? { ...i, quantity: qty } : i
+    );
+    setCartItems(updated);
+    onCartUpdate?.(updated.reduce((sum, i) => sum + i.quantity, 0));
+
     if (isLoggedIn) {
       try {
         await axiosInstance.patch(
           `api/cart/${item.id}/`,
           { quantity: qty },
           {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            },
+            headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
           }
         );
       } catch {}
-      fetchCart();
     } else {
-      const updated = cartItems.map((i) =>
-        i.id === item.id ? { ...i, quantity: qty } : i
-      );
-      setCartItems(updated);
       localStorage.setItem("guest_cart", JSON.stringify(updated));
-      onCartUpdate?.(updated.reduce((sum, i) => sum + i.quantity, 0));
     }
   };
 
@@ -86,13 +85,12 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
     try {
       for (const item of cartItems) {
         await axiosInstance.delete(`api/cart/${item.id}/`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("access_token")}` },
         });
       }
 
-      await fetchCart();
+      setCartItems([]);
+      onCartUpdate?.(0);
       setMessage("✅ Order placed successfully! Thank you for shopping with us.");
     } catch {
       setMessage("❌ Something went wrong. Please try again.");
@@ -113,33 +111,21 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
   );
 
   return (
-    <div
-      className="cart-container"
-      style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}
-    >
-      <h2
-        className="cart-title"
-        style={{ textAlign: "center", marginBottom: "20px" }}
-      >
-        My Cart
-      </h2>
+    <div className="cart-container" style={{ maxWidth: "900px", margin: "0 auto", padding: "20px" }}>
+      <h2 className="cart-title" style={{ textAlign: "center", marginBottom: "20px" }}>My Cart</h2>
 
       {message && (
-        <div
-          style={{
-            textAlign: "center",
-            marginBottom: "15px",
-            fontWeight: "bold",
-            color: message.includes("✅") ? "green" : "red",
-          }}
-        >
+        <div style={{
+          textAlign: "center",
+          marginBottom: "15px",
+          fontWeight: "bold",
+          color: message.includes("✅") ? "green" : "red",
+        }}>
           {message}
         </div>
       )}
 
-      {cartItems.length === 0 && (
-        <p style={{ textAlign: "center" }}>Your cart is empty</p>
-      )}
+      {cartItems.length === 0 && <p style={{ textAlign: "center" }}>Your cart is empty</p>}
 
       <div className="cart-grid" style={{ display: "grid", gap: "20px" }}>
         {cartItems.map((item) => {
@@ -176,9 +162,7 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
                 type="number"
                 min="1"
                 value={item.quantity}
-                onChange={(e) =>
-                  handleQuantityChange(item, e.target.value)
-                }
+                onChange={(e) => handleQuantityChange(item, e.target.value)}
                 style={{
                   width: "100px",
                   padding: "8px",
@@ -211,10 +195,7 @@ const Cart = ({ isLoggedIn, onRequireLogin, onCartUpdate }) => {
       {cartItems.length > 0 && (
         <div style={{ textAlign: "center", marginTop: "30px" }}>
           <h3>
-            Grand Total:{" "}
-            <span style={{ color: "#1976d2" }}>
-              {formatPrice(grandTotal)}
-            </span>
+            Grand Total: <span style={{ color: "#1976d2" }}>{formatPrice(grandTotal)}</span>
           </h3>
           <button
             onClick={handleCheckout}
