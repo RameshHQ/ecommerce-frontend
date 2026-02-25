@@ -35,7 +35,6 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
     if (isLoggedIn) {
       const token = localStorage.getItem("access_token");
 
-      const existing = false; // We'll optimistically update count without checking backend
       setAddedMessage((prev) => ({ ...prev, [product.id]: "success" }));
       syncCartCount();
       setTimeout(() => setAddedMessage((prev) => ({ ...prev, [product.id]: "" })), 2000);
@@ -52,9 +51,10 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
         });
     } else {
       const guestCart = JSON.parse(localStorage.getItem("guest_cart") || "[]");
-      const existing = guestCart.find((i) => i.id === product.id);
-      if (existing) existing.quantity += 1;
-      else
+      const existingIndex = guestCart.findIndex((i) => i.id === product.id);
+      if (existingIndex !== -1) {
+        guestCart[existingIndex].quantity += 1;
+      } else {
         guestCart.push({
           id: product.id,
           quantity: 1,
@@ -65,6 +65,7 @@ const ProductList = ({ onCartUpdate, isLoggedIn }) => {
             image: product.image,
           },
         });
+      }
 
       localStorage.setItem("guest_cart", JSON.stringify(guestCart));
       setAddedMessage((prev) => ({ ...prev, [product.id]: "success" }));
